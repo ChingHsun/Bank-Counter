@@ -43,43 +43,34 @@ const App = () => {
     "idle",
     "idle",
   ]);
-  //const count = useRef(0);
-  const [count, setCount] = useState(0);
+  const count = useRef(0);
+  const next = useRef(count.current);
+
+  //const [count, setCount] = useState(0);
+
   useEffect(() => {
-    console.log("count", count);
-    if (count > 0) {
+    console.log(waitList);
+    if (waitList.length > 0) {
       const freeIndex = processing.findIndex((e) => e === "idle");
       console.log("freeIndex", freeIndex);
 
       if (freeIndex !== -1) {
-        if (waitList.length === 0) {
-          console.log([
-            ...processing.slice(0, freeIndex),
-            count,
-            ...processing.slice(freeIndex + 1),
-          ]);
-          setProcessing([
-            ...processing.slice(0, freeIndex),
-            count,
-            ...processing.slice(freeIndex + 1),
-          ]);
-        } else {
-          let [next, ...rest] = waitList;
-          setProcessing([
-            ...processing.slice(0, freeIndex),
-            next,
-            ...processing.slice(freeIndex + 1),
-          ]);
-          setWaitList(rest);
-        }
-      } else {
-        setWaitList([...waitList, count]);
+        console.log(waitList);
+        console.log("in", count);
+
+        let [next, ...rest] = waitList;
+        setProcessing([
+          ...processing.slice(0, freeIndex),
+          next,
+          ...processing.slice(freeIndex + 1),
+        ]);
+        setWaitList(rest);
       }
     }
-  }, [count]);
+  }, [waitList, processing]);
 
   const handleBeFree = useCallback((freeIndex) => {
-    console.log("processing", processing);
+    //console.log("processing", processing);
     setProcessing([
       ...processing.slice(0, freeIndex),
       "idle",
@@ -115,12 +106,11 @@ const App = () => {
           <div>
             <button
               onClick={() => {
-                setCount((pre) => {
-                  return pre + 1;
-                });
+                count.current++;
+                setWaitList([...waitList, count.current]);
               }}
             >
-              Next {count + 1}
+              Next {count.current + 1}
             </button>
           </div>
         </StyledInfo>
