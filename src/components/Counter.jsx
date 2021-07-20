@@ -1,24 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
-const Counter = ({ counter, wait, isEmpty }) => {
-  const processing = useRef("idle");
+const Counter = ({ id, name, processing, onBeFree }) => {
+  const [processed, setProcessed] = useState([]);
   useEffect(() => {
-    console.log("r", wait);
-    if (processing.current === "idle") {
-      isEmpty();
+    console.log(`id:${id}:`, processed);
+    if (processing !== "idle") {
+      let timer = setTimeout(() => {
+        setProcessed([...processed, processing]);
+        onBeFree(id);
+      }, [3000]);
     }
-    if (wait) {
-      processing.current = wait;
-    }
-  }, [processing.current, wait]);
-
+  }, [id, processing, processed, onBeFree]);
   return (
     <div className="flex">
-      <p className="counter">{counter}</p>
-      <p>{processing.current}</p>
-      <p>processed</p>
+      <p className="counter">{name}</p>
+      <p>{processing}</p>
+      <p>{processed.join()}</p>
     </div>
   );
 };
 
-export default Counter;
+export default memo(Counter);

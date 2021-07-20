@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Counter from "./components/Counter";
 
@@ -18,8 +18,8 @@ const StyledCounter = styled.div`
       text-align: center;
       flex-basis: 40%;
       outline: 1px solid black;
-      height: 100%;
-      padding: 20px;
+      height: 40px;
+      line-height: 40px;
     }
   }
 `;
@@ -31,34 +31,61 @@ const StyledInfo = styled.div`
 
 const App = () => {
   const [waitList, setWaitList] = useState([]);
-
   const counterList = [
-    { id: 1, name: "Amy" },
-    { id: 2, name: "Bob" },
-    { id: 3, name: "Steven" },
-    { id: 4, name: "Cara" },
+    { id: 0, name: "Amy" },
+    { id: 1, name: "Bob" },
+    { id: 2, name: "Steven" },
+    { id: 3, name: "Cara" },
   ];
-  const count = useRef(0);
-  const nextCounter = useRef();
-  const nextWait = useRef();
-  const freeCounters = useRef([]);
-
+  const [processing, setProcessing] = useState([
+    "idle",
+    "idle",
+    "idle",
+    "idle",
+  ]);
+  //const count = useRef(0);
+  const [count, setCount] = useState(0);
   useEffect(() => {
-    console.log(freeCounters.current);
+    console.log("count", count);
+    if (count > 0) {
+      const freeIndex = processing.findIndex((e) => e === "idle");
+      console.log("freeIndex", freeIndex);
 
-    if (waitList.length !== 0) {
-      nextWait.current = waitList[0];
-      if (freeCounters.current.length !== 0) {
-        nextCounter.current = freeCounters.current[0];
-        freeCounters.current = freeCounters.current.slice(1);
-        setWaitList(waitList.slice(1));
+      if (freeIndex !== -1) {
+        if (waitList.length === 0) {
+          console.log([
+            ...processing.slice(0, freeIndex),
+            count,
+            ...processing.slice(freeIndex + 1),
+          ]);
+          setProcessing([
+            ...processing.slice(0, freeIndex),
+            count,
+            ...processing.slice(freeIndex + 1),
+          ]);
+        } else {
+          let [next, ...rest] = waitList;
+          setProcessing([
+            ...processing.slice(0, freeIndex),
+            next,
+            ...processing.slice(freeIndex + 1),
+          ]);
+          setWaitList(rest);
+        }
+      } else {
+        setWaitList([...waitList, count]);
       }
     }
-  }, [waitList, nextCounter.current]);
-  const isEmpty = (id) => {
-    freeCounters.current = [...freeCounters.current, id];
-  };
+  }, [count]);
 
+  const handleBeFree = useCallback((freeIndex) => {
+    console.log("processing", processing);
+    setProcessing([
+      ...processing.slice(0, freeIndex),
+      "idle",
+      ...processing.slice(freeIndex + 1),
+    ]);
+  }, []);
   return (
     <div style={{ padding: "100px 30px" }}>
       <StyledInner>
@@ -69,11 +96,17 @@ const App = () => {
             <p>processed</p>
           </div>
           {counterList.map(({ id, name }) => (
+            // <div className="flex" key={id}>
+            //   <p className="counter">{name}</p>
+            //   <p>{processing[id]}</p>
+            //   <p>{processed[id]}</p>
+            // </div>
             <Counter
               key={id}
-              counter={name}
-              wait={nextCounter.current === id ? nextWait.current : null}
-              isEmpty={() => isEmpty(id)}
+              id={id}
+              name={name}
+              processing={processing[id]}
+              onBeFree={handleBeFree}
             ></Counter>
           ))}
         </StyledCounter>
@@ -82,11 +115,12 @@ const App = () => {
           <div>
             <button
               onClick={() => {
-                count.current++;
-                setWaitList([...waitList, count.current]);
+                setCount((pre) => {
+                  return pre + 1;
+                });
               }}
             >
-              Next {waitList.length + 1}
+              Next {count + 1}
             </button>
           </div>
         </StyledInfo>
