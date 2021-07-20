@@ -5,40 +5,36 @@ import { counterList } from "./utils";
 
 const StyledInner = styled.div`
   max-width: 1200px;
-  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
 `;
 const StyledCounter = styled.div`
   width: 100%;
   margin-bottom: 5%;
-
+  @media screen and (max-width: 768px) {
+    overflow: scroll;
+  }
   .grid {
     display: grid;
-    //justify-content: space-between;
     word-wrap: break-word;
     word-break: break-all;
-    grid-template-columns: 20% 40% 40%;
+    grid-template-columns: 1fr 1fr 1fr;
     text-align: center;
     min-height: 70px;
+    width: 100%;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
     .title {
       display: flex;
       justify-content: center;
       align-items: center;
       background: #ff7d6b;
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       color: white;
       font-weight: 900;
-    }
-    .content {
-      min-height: 100px;
-      font-size: 1.2rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-bottom: 0.5px solid white;
-
-      p {
-        line-height: 40px;
-      }
     }
   }
 `;
@@ -46,19 +42,38 @@ const StyledCounter = styled.div`
 const StyledInfo = styled.div`
   display: flex;
   justify-content: space-between;
+  @media screen and (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-end;
+    min-height: 130px;
+  }
+
   .wait {
     font-size: 1.5rem;
     span {
+      display: inline-block;
+      text-align: center;
+      line-height: 50px;
       margin-left: 20px;
-      font-size: 2rem;
+      background: ${(props) => (props.wait ? "#2b3344" : "#c8c9ce")};
+      border-radius: 100%;
+      width: 50px;
+      height: 50px;
+      color: white;
     }
   }
   button {
-    background: #ff7d6b;
-    color: white;
-    border: none;
+    background: white;
+    border: 2px solid #ff7d6b;
+    color: #ff7d6b;
     font-size: 2rem;
     padding: 10px 30px;
+    border-radius: 10px;
+    cursor: pointer;
+    :hover {
+      background: #ff7d6b;
+      color: white;
+    }
   }
 `;
 
@@ -68,15 +83,9 @@ const App = () => {
   const count = useRef(0);
   const [processed, setProcessed] = useState(counterList.map((i) => []));
   useEffect(() => {
-    console.log(waitList);
     if (waitList.length > 0) {
       const freeIndex = processing.findIndex((e) => e === "idle");
-      console.log("freeIndex", freeIndex);
-
       if (freeIndex !== -1) {
-        console.log(waitList);
-        console.log("in", count);
-
         let [next, ...rest] = waitList;
         setProcessing([
           ...processing.slice(0, freeIndex),
@@ -89,12 +98,9 @@ const App = () => {
   }, [waitList, processing]);
 
   const handleProcessed = async (id, value) => {
-    console.log(id, value);
     const min = 500;
     const max = 1500;
     const time = Math.floor(Math.random() * (max - min + 1) + min);
-    console.log("time");
-
     if (processing[id] !== "idle") {
       await new Promise((resolve) =>
         setTimeout(() => {
@@ -114,46 +120,53 @@ const App = () => {
     }
   };
   return (
-    <div style={{ padding: "100px 30px" }}>
+    <div
+      style={{
+        height: "100vh",
+        position: "relative",
+      }}
+    >
       <StyledInner>
-        <StyledCounter>
-          <div className="grid">
-            <div className="counter title">
-              <p>COUNTER</p>
+        <div>
+          <StyledCounter>
+            <div className="grid">
+              <div className="counter title">
+                <p>COUNTER</p>
+              </div>
+              <div className="title">
+                <p>PROCESSING</p>
+              </div>
+              <div className="title">
+                <p>PROCESSED</p>
+              </div>
             </div>
-            <div className="title">
-              <p>PROCESSING</p>
+            {counterList.map(({ id, name }) => (
+              <Counter
+                key={id}
+                id={id}
+                name={name}
+                processing={processing[id]}
+                onProcessed={handleProcessed}
+                processed={processed[id]}
+              ></Counter>
+            ))}
+          </StyledCounter>
+          <StyledInfo wait={waitList.length}>
+            <div className="wait">
+              Waiting<span>{waitList.length}</span>
             </div>
-            <div className="title">
-              <p>PROCESSED</p>
+            <div>
+              <button
+                onClick={() => {
+                  count.current++;
+                  setWaitList([...waitList, count.current]);
+                }}
+              >
+                Next {count.current + 1}
+              </button>
             </div>
-          </div>
-          {counterList.map(({ id, name }) => (
-            <Counter
-              key={id}
-              id={id}
-              name={name}
-              processing={processing[id]}
-              onProcessed={handleProcessed}
-              processed={processed[id]}
-            ></Counter>
-          ))}
-        </StyledCounter>
-        <StyledInfo>
-          <div className="wait">
-            Waiting:<span>{waitList.length}</span>
-          </div>
-          <div>
-            <button
-              onClick={() => {
-                count.current++;
-                setWaitList([...waitList, count.current]);
-              }}
-            >
-              Next {count.current + 1}
-            </button>
-          </div>
-        </StyledInfo>
+          </StyledInfo>
+        </div>
       </StyledInner>
     </div>
   );
