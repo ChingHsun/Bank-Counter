@@ -1,24 +1,20 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect } from "react";
 
-const Counter = ({ id, name, processing, onBeFree }) => {
-  const [processed, setProcessed] = useState([]);
+const Counter = ({ id, name, processing, processed, onProcessed }) => {
   useEffect(() => {
-    console.log(`id${id}:`, processed);
-    if (processing !== "idle") {
-      const min = Math.ceil(500);
-      const max = Math.floor(1500);
-      const time = Math.floor(Math.random() * (max - min + 1) + min);
-      let timer = setTimeout(() => {
-        setProcessed([...processed, processing]);
-        onBeFree(id);
-      }, [time]);
-    }
-  }, [id, processing]);
+    onProcessed(id, processing);
+  }, [processing]);
   return (
-    <div className="flex">
-      <p className="counter">{name}</p>
-      <p>{processing}</p>
-      <p>{processed.join()}</p>
+    <div className="grid">
+      <div className="counter content">
+        <p>{name}</p>
+      </div>
+      <div className="content">
+        <p>{processing}</p>
+      </div>
+      <div className="content">
+        <p>{processed.join()}</p>
+      </div>
     </div>
   );
 };
