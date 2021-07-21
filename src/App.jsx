@@ -140,14 +140,14 @@ const App = () => {
                 <p>PROCESSED</p>
               </div>
             </div>
-            {counterList.map(({ id, name }) => (
+            {counterList.map((name, idex) => (
               <Counter
-                key={id}
-                id={id}
+                key={idex}
+                id={idex}
                 name={name}
-                processing={processing[id]}
+                processing={processing[idex]}
                 onProcessed={handleProcessed}
-                processed={processed[id]}
+                processed={processed[idex]}
               ></Counter>
             ))}
           </StyledCounter>
