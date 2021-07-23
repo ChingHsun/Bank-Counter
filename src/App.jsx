@@ -107,31 +107,22 @@ const App = () => {
     const max = 1500;
     const time = Math.floor(Math.random() * (max - min + 1) + min);
     if (processData.processing[id] !== "idle") {
-      await new Promise((resolve) =>
-        setTimeout(() => {
-          setProcessData((pre) => {
-            return {
-              ...pre,
-              processed: [
-                ...pre.processed.slice(0, id),
-                [...pre.processed[id], value],
-                ...pre.processed.slice(id + 1),
-              ],
-            };
-          });
-          resolve("");
-        }, time)
-      );
-      setProcessData((pre) => {
-        return {
-          ...pre,
-          processing: [
-            ...pre.processing.slice(0, id),
-            "idle",
-            ...pre.processing.slice(id + 1),
-          ],
-        };
-      });
+      setTimeout(() => {
+        setProcessData((pre) => {
+          return {
+            processed: [
+              ...pre.processed.slice(0, id),
+              [...pre.processed[id], value],
+              ...pre.processed.slice(id + 1),
+            ],
+            processing: [
+              ...pre.processing.slice(0, id),
+              "idle",
+              ...pre.processing.slice(id + 1),
+            ],
+          };
+        });
+      }, time);
     }
   };
   return (
