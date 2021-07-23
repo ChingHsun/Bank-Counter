@@ -79,44 +79,59 @@ const StyledInfo = styled.div`
 
 const App = () => {
   const [waitList, setWaitList] = useState([]);
-  const [processing, setProcessing] = useState(counterList.map((i) => "idle"));
+  const [processData, setProcessData] = useState({
+    processing: counterList.map((i) => "idle"),
+    processed: counterList.map((i) => []),
+  });
   const count = useRef(0);
-  const [processed, setProcessed] = useState(counterList.map((i) => []));
   useEffect(() => {
     if (waitList.length > 0) {
-      const freeIndex = processing.findIndex((e) => e === "idle");
+      const freeIndex = processData.processing.findIndex((e) => e === "idle");
       if (freeIndex !== -1) {
         let [next, ...rest] = waitList;
-        setProcessing([
-          ...processing.slice(0, freeIndex),
-          next,
-          ...processing.slice(freeIndex + 1),
-        ]);
+        setProcessData({
+          ...processData,
+          processing: [
+            ...processData.processing.slice(0, freeIndex),
+            next,
+            ...processData.processing.slice(freeIndex + 1),
+          ],
+        });
         setWaitList(rest);
       }
     }
-  }, [waitList, processing]);
+  }, [waitList, processData.processing]);
 
   const handleProcessed = async (id, value) => {
     const min = 500;
     const max = 1500;
     const time = Math.floor(Math.random() * (max - min + 1) + min);
-    if (processing[id] !== "idle") {
+    if (processData.processing[id] !== "idle") {
       await new Promise((resolve) =>
         setTimeout(() => {
-          setProcessed((pre) => [
-            ...pre.slice(0, id),
-            [...pre[id], value],
-            ...pre.slice(id + 1),
-          ]);
+          setProcessData((pre) => {
+            return {
+              ...pre,
+              processed: [
+                ...pre.processed.slice(0, id),
+                [...pre.processed[id], value],
+                ...pre.processed.slice(id + 1),
+              ],
+            };
+          });
           resolve("");
         }, time)
       );
-      setProcessing((pre) => [
-        ...pre.slice(0, id),
-        "idle",
-        ...pre.slice(id + 1),
-      ]);
+      setProcessData((pre) => {
+        return {
+          ...pre,
+          processing: [
+            ...pre.processing.slice(0, id),
+            "idle",
+            ...pre.processing.slice(id + 1),
+          ],
+        };
+      });
     }
   };
   return (
@@ -145,9 +160,9 @@ const App = () => {
                 key={idex}
                 id={idex}
                 name={name}
-                processing={processing[idex]}
+                processing={processData.processing[idex]}
                 onProcessed={handleProcessed}
-                processed={processed[idex]}
+                processed={processData.processed[idex]}
               ></Counter>
             ))}
           </StyledCounter>
